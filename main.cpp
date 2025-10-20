@@ -184,12 +184,16 @@ void test_memory_usage(size_t size) {
     std::vector<int> vec(size);
     std::list<int> lst(size, 0);
 
-    // Approximate memory usage
-    size_t dq_memory = dq.size() * sizeof(int) +
-                       dq.max_size() / sizeof(int) * sizeof(void*);
+    // Rough estimate of memory usage
+    size_t block_size = 512 / sizeof(int);  // 每个块大约容纳的元素数量（SGI STL规则）
+    size_t num_blocks = (dq.size() + block_size - 1) / block_size;
+    size_t map_overhead = num_blocks * sizeof(void*); // map指针开销
+
+    size_t dq_memory = dq.size() * sizeof(int) + map_overhead;
     size_t vec_memory = vec.capacity() * sizeof(int);
     size_t lst_memory = lst.size() * (sizeof(int) + 2 * sizeof(void*));
 
+    std::cout << std::fixed;
     std::cout << "deque:  ~" << dq_memory / 1024 << " KB\n";
     std::cout << "vector: ~" << vec_memory / 1024 << " KB\n";
     std::cout << "list:   ~" << lst_memory / 1024 << " KB\n";
